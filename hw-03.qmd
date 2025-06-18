@@ -1,18 +1,96 @@
 ---
 title: "HW 03"
-author: "INSERT YOUR NAME HERE"
+author: "Brooke Pacheco"
 format:
   html:
     embed-resources: true
 toc: true
 ---
+## 0 - Setup
+
+```{r setup}
+# load packages
+library(tidyverse)
+library(glue)
+library(here)
+library(countdown)
+library(ggthemes)
+library(gt)
+library(openintro)
+library(ggrepel)
+library(patchwork)
+
+# set theme for ggplot2
+ggplot2::theme_set(ggplot2::theme_minimal(base_size = 11))
+
+# set width of code output
+options(width = 65)
+
+# set figure parameters for knitr
+knitr::opts_chunk$set(
+  fig.width = 7,        # 7" width
+  fig.asp = 0.618,      # the golden ratio
+  fig.retina = 3,       # dpi multiplier for displaying HTML output on retina
+  fig.align = "center", # center align figures
+  dpi = 300             # higher dpi, sharper image
+)
+
+if (!require("pacman")) 
+  install.packages("pacman")
+
+# use this line for installing/loading
+pacman::p_load(tidyverse,
+               glue,
+               scales,
+               ggthemes) 
+
+devtools::install_github("tidyverse/dsbox")
+
+```
 
 ## 1 - Du Bois challenge.
 
 ```{r}
-#| label: label-me-1
+#| label: Recreation of Du Bois Plot
+
+# Read in data from income file
+income <- read_csv(here("data" ,"income.csv"))
+
+income <- income |>
+  pivot_longer(
+    cols = c(Rent, Food, Clothes, Tax, Other),
+    names_to = "Type",
+    values_to = "Total_Amount"
+  ) |>
+  mutate(
+    Type = factor(Type, levels = c("Other", "Tax", "Clothes", "Food", "Rent")),
+    Class = factor(Class, levels = c("$1000 AND OVER", "$750-1000", "$500-750", "$400-500", "$300-400", "$200-300", "$100-200")),
+    Percent = round((Total_Amount / Average_Income) * 100)
+  ) |>
+  glimpse()
+
+# Create the histogram plot
+ggplot(income, aes(x = Total_Amount, y = Class, fill = Type)) +
+  geom_col(position = "stack") +
+  scale_fill_manual(
+    values = c("Rent" = "#000000", "Food" = "#C3B1E1", "Clothes" = "#F89880", "Tax" = "#B7C9E2", "Other" = "#E6ECF5")) +
+  geom_text(
+    aes(label = percent(Percent)),
+    position = position_stack(vjust = 0.5),
+    color = "black",
+    size = 3
+  ) +
+  labs(
+    title = "Du Bois Plot Recreation",
+    x = "Amount Spent",
+    y = "Income Class"
+  ) +
+  theme_minimal(base_size = 11)
 
 ```
+### Sources
+hex color values:
+https://htmlcolorcodes.com/colors/
 
 ## 2 - COVID survey - interpret
 
