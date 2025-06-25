@@ -108,18 +108,137 @@ For the response variable "I trust the information that I have received about th
 ```{r}
 #| label: Reconstruct COVID Survey 
 
-# Read in data from COVID survey file
-covid_survey <- read_csv(here("data" ,"covid-survey.csv")) 
+# Read in data from COVID survey file and skip first row
+covid_survey <- read_csv(here("data", "covid-survey.csv"), skip = 1)
 
-covid_survey |>
-  glimpse()
-
-head(covid_survey)
-
+# Print dimensions of data frame
 dim(covid_survey)
 
+# Data cleanup - eliminate any rows where all values aside from response_id are missing
+cleaned_survey <- covid_survey |>
+  filter(!if_all(-response_id, is.na))
+
+# Print dimensions of cleaned data frame
+dim(cleaned_survey)
+
+# Relabel the survey response values
+relabeled_survey <- cleaned_survey |>
+  mutate(
+    exp_already_vax = factor(case_match(exp_already_vax, 0 ~ "No", 1 ~ "Yes")),
+    exp_flu_vax = factor(case_match(exp_flu_vax, 0 ~ "No", 1 ~ "Yes")),
+    exp_profession = factor(case_match(exp_profession, 0 ~ "Medical", 1 ~ "Nursing")),
+    exp_gender = factor(case_match(exp_gender, 0 ~ "Male", 1 ~ "Female", 3 ~ "Non-binary/Third gender", 4 ~ "Prefer not to say")),
+    exp_race = factor(case_match(exp_race, 1 ~ "American Indian / Alaskan Native", 2 ~ "Asian", 3 ~ "Black / African American", 4 ~ "Native Hawaiian / Other Pacific Islander", 5 ~ "White")),
+    exp_ethnicity = factor(case_match(exp_ethnicity, 1 ~ "Hispanic / Latino", 2 ~ "Non-Hispanic / Non-Latino")),
+    exp_age_bin = factor(case_when(exp_age_bin == 0 ~ "<20", exp_age_bin == 20 ~ "21-25", exp_age_bin == 25 ~ "26-30", exp_age_bin == 30 ~ ">30", TRUE ~ as.character(exp_age_bin))
+    )
+  )
+
+# Print dimensions of relabeled survey
+dim(relabeled_survey)
+
+# Calculate the 10th percentile, mean, and 90th percentile of each of the response variables for each level of each explanatory variable.
+covid_survey_longer <- relabeled_survey |>
+  # Takes all the columns starting with "exp_" and creates them into two columns: explanatory and explanatory_value.
+  pivot_longer(
+    cols = starts_with("exp_"),
+    names_to = "explanatory",
+    values_to = "explanatory_value"
+  ) |>
+  filter(!is.na(explanatory_value)) |>
+  # Takes all the columns starting with "resp_" and creates them into two columns: response and response_value.
+  pivot_longer(
+    cols = starts_with("resp_"),
+    names_to = "response",
+    values_to = "response_value"
+  )
+
+# Print dimensions of data frame and confirm tribble table matches homework 
+covid_survey_longer
+dim(covid_survey_longer)
+
+# Group data in covid_survey_longer
+covid_survey_summary_stats_by_group <- covid_survey_longer |>
+  group_by(explanatory, explanatory_value, response) |>
+  summarise(
+    mean = mean(response_value, na.rm = TRUE),
+    low = quantile(response_value, 0.10, na.rm = TRUE),
+    high = quantile(response_value, 0.90, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# View the summary tibble
+covid_survey_summary_stats_by_group
+
+# Check dimensions
+dim(covid_survey_summary_stats_by_group)
+
+# Group data in covid_survey_longer only by response
+covid_survey_summary_stats_all <- covid_survey_longer |>
+  group_by(response) |>
+  summarise(
+    mean = mean(response_value, na.rm = TRUE),
+    low  = quantile(response_value, 0.10, na.rm = TRUE),
+    high = quantile(response_value, 0.90, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(
+    explanatory = "All",
+    explanatory_value = factor("")
+  ) |>
+  select(explanatory, explanatory_value, everything())
+
+# View the result
+covid_survey_summary_stats_all
+
+# Check dimensions
+dim(covid_survey_summary_stats_all)
+
+# Bind both summary tables together
+covid_survey_summary_stats <- bind_rows(
+  covid_survey_summary_stats_all,
+  covid_survey_summary_stats_by_group
+)
+
+# Check final dimensions 
+dim(covid_survey_summary_stats)
+
+# View final summary
+covid_survey_summary_stats
+
+ggplot(covid_survey_summary_stats, aes(x = mean, y = explanatory_value)) +
+  geom_point(
+    size = 0.5,
+  ) +
+  geom_errorbarh(
+    aes(xmin = low, xmax = high),
+    height = 0.5, 
+    color = "black"
+  ) +
+  facet_grid(explanatory_value ~ response, scales = "free_y", space = "free_y") +
+  labs(
+    title = "TODO",
+    x = "TODO",
+    y = NULL
+  ) + 
+  theme_minimal(base_size = 11) +
+  theme(
+    strip.background = element_rect(fill = "grey90", color = NA)
+  )
 ```
 
+### Sources
+To not select a column, used '-' directly from:
+https://stackoverflow.com/questions/49582602/how-not-to-select-columns-using-select-dplyr-when-you-have-character-vector-of
+
+Directly referenced to remove NA data before evaluating expression:
+https://stat.ethz.ch/R-manual/R-devel/library/base/html/mean.html
+
+Referenced for quantile function:
+https://stat.ethz.ch/R-manual/R-devel/library/stats/html/quantile.html
+
+Referenced for ticks at end of bars:
+https://ggplot2.tidyverse.org/reference/geom_errorbarh.html
 
 ## 4 - COVID survey - re-reconstruct
 
