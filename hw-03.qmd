@@ -128,7 +128,7 @@ relabeled_survey <- cleaned_survey |>
     exp_flu_vax = factor(case_match(exp_flu_vax, 0 ~ "No", 1 ~ "Yes")),
     exp_profession = factor(case_match(exp_profession, 0 ~ "Medical", 1 ~ "Nursing")),
     exp_gender = factor(case_match(exp_gender, 0 ~ "Male", 1 ~ "Female", 3 ~ "Non-binary/Third gender", 4 ~ "Prefer not to say")),
-    exp_race = factor(case_match(exp_race, 1 ~ "American Indian / Alaskan Native", 2 ~ "Asian", 3 ~ "Black / African American", 4 ~ "Native Hawaiian / Other Pacific Islander", 5 ~ "White")),
+    exp_race = factor(case_match(exp_race, 1 ~ "American Indian /\nAlaskan Native", 2 ~ "Asian", 3 ~ "Black / African American", 4 ~ "Native Hawaiian / Other\nPacific Islander", 5 ~ "White")),
     exp_ethnicity = factor(case_match(exp_ethnicity, 1 ~ "Hispanic / Latino", 2 ~ "Non-Hispanic / Non-Latino")),
     exp_age_bin = factor(case_when(exp_age_bin == 0 ~ "<20", exp_age_bin == 20 ~ "21-25", exp_age_bin == 25 ~ "26-30", exp_age_bin == 30 ~ ">30", TRUE ~ as.character(exp_age_bin))
     )
@@ -216,7 +216,7 @@ covid_survey_summary_stats <- covid_survey_summary_stats |>
       explanatory_value == "" ~ "All",
       explanatory_value %in% c(">30", "26-30", "21-25", "<20") ~ "Age",
       explanatory_value %in% c("Prefer not to say", "Non-binary/Third gender", "Male", "Female") ~ "Gender",
-      explanatory_value %in% c("White", "Native Hawaiian / Other Pacific Islander", "Black / African American", "Asian", "American Indian / Alaskan Native") ~ "Race",
+      explanatory_value %in% c("White", "Native Hawaiian / Other\nPacific Islander", "Black / African American", "Asian", "American Indian /\nAlaskan Native") ~ "Race",
       explanatory_value %in% c("Non-Hispanic / Non-Latino", "Hispanic / Latino") ~ "Ethnicity",
       explanatory_value %in% c("Nursing", "Medical") ~ "Profession",
       explanatory_value %in% c("Yes", "No") & explanatory == "exp_already_vax" ~ "Had COVID Vaccine",
@@ -224,7 +224,7 @@ covid_survey_summary_stats <- covid_survey_summary_stats |>
       TRUE ~ NA_character_
     ),
     grouping = factor(grouping, levels = c("All", "Age", "Gender", "Race", "Ethnicity", "Profession", "Had COVID Vaccine", "Had flu Vaccine this year")),
-    explanatory_value = factor(explanatory_value, levels = c("<20", "21-25", "26-30", ">30", "", "Female", "Male", "Non-binary/Third gender", "Prefer not to say", "American Indian / Alaskan Native", "Asian", "Black / African American", "Native Hawaiian / Other Pacific Islander", "White", "Hispanic / Latino", "Non-Hispanic / Non-Latino", "Medical", "Nursing", "No", "Yes")),
+    explanatory_value = factor(explanatory_value, levels = c("<20", "21-25", "26-30", ">30", "", "Female", "Male", "Non-binary/Third gender", "Prefer not to say", "American Indian /\nAlaskan Native", "Asian", "Black / African American", "Native Hawaiian / Other\nPacific Islander", "White", "Hispanic / Latino", "Non-Hispanic / Non-Latino", "Medical", "Nursing", "No", "Yes")),
   )
 
 ggplot(covid_survey_summary_stats, aes(x = mean, y = explanatory_value)) +
@@ -242,9 +242,9 @@ ggplot(covid_survey_summary_stats, aes(x = mean, y = explanatory_value)) +
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     strip.background = element_rect(fill = "grey90", color = NA),
-    axis.text.y = element_text(size = 8),
-    strip.text.y.left = element_text(angle = 0),
-    strip.placement.y = "right",
+    axis.text.y = element_text(size = 5),
+    strip.text.y.right = element_text(angle = pi / 6),
+    panel.spacing.y = unit(1, "lines")
   )
 ```
 
