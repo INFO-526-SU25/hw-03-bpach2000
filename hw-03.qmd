@@ -229,11 +229,26 @@ covid_survey_summary_stats <- covid_survey_summary_stats |>
     explanatory_value = factor(explanatory_value, levels = c("<20", "21-25", "26-30", ">30", "", "Female", "Male", "Non-binary/Third gender", "Prefer not to say", "American Indian /\nAlaskan Native", "Asian", "Black / African American", "Native Hawaiian / Other\nPacific Islander", "White", "Hispanic / Latino", "Non-Hispanic / Non-Latino", "Medical", "Nursing", "No", "Yes")),
   )
 
+# define labels for response variables
+response_labels <- c(
+  "resp_safety" = "Based on my\nunderstanding, I\nbelieve the vaccine\nis safe",
+  "resp_feel_safe_at_work" = "Getting the vaccine\nwill make me feel\nsafer at work",
+  "resp_concern_safety" = "I am concerned\nabout the safety\nand side effects of\nthe vaccine",
+  "resp_confidence_science" = "I am confident in\nthe scientific\nvetting process for\n the new COVID\nvaccines",
+  "resp_trust_info" = "I trust the\ninformation that I\nhave received about\nthe vaccines",
+  "resp_will_recommend" = "I will recommend\nthe vaccine to\nfamily, friends,\nand community\nmembers"
+)
+
 ggplot(covid_survey_summary_stats, aes(x = mean, y = explanatory_value)) +
   geom_point(size = 0.6) +
   geom_errorbarh(aes(xmin = low, xmax = high), height = 0.3, color = "black", size = 0.3) +
   scale_y_discrete(expand = expansion(mult = c(0.05, 0.05))) +
-  facet_grid(grouping ~ response, scales = "free_y", space = "free_y") +
+  facet_grid(
+    grouping ~ response, 
+    scales = "free_y", 
+    space = "free_y",
+    labeller = labeller(response = as_labeller(response_labels))
+    ) +
   labs(
     title = "Mean Likert Scores by Group and Survey Question",
     x = "Mean Likert Score\nError bars range from 10th to 90th percentile",
@@ -243,10 +258,11 @@ ggplot(covid_survey_summary_stats, aes(x = mean, y = explanatory_value)) +
   theme(
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
+    panel.spacing = unit(0.1, "lines"),
     strip.background = element_rect(fill = "grey90", color = "black"),
     axis.text.y = element_text(size = 5),
     strip.text.y.right = element_text(size = 4, angle = pi / 6, margin = margin(t = 80, r = 1, b = 80, l = 1)),
-    strip.text.x = element_text(margin = margin(t = 4, r = 0, b = 10, l = 0))
+    strip.text.x = element_text(margin = margin(t = 5, r = 0, b = 5, l = 0), size = 6)
   )
 ```
 
