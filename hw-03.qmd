@@ -19,6 +19,7 @@ library(gt)
 library(openintro)
 library(ggrepel)
 library(patchwork)
+library(ggh4x)
 
 # set theme for ggplot2
 ggplot2::theme_set(ggplot2::theme_minimal(base_size = 11))
@@ -42,7 +43,8 @@ if (!require("pacman"))
 pacman::p_load(tidyverse,
                glue,
                scales,
-               ggthemes) 
+               ggthemes,
+               ggh4x) 
 
 devtools::install_github("tidyverse/dsbox")
 
@@ -219,32 +221,32 @@ covid_survey_summary_stats <- covid_survey_summary_stats |>
       explanatory_value %in% c("White", "Native Hawaiian / Other\nPacific Islander", "Black / African American", "Asian", "American Indian /\nAlaskan Native") ~ "Race",
       explanatory_value %in% c("Non-Hispanic / Non-Latino", "Hispanic / Latino") ~ "Ethnicity",
       explanatory_value %in% c("Nursing", "Medical") ~ "Profession",
-      explanatory_value %in% c("Yes", "No") & explanatory == "exp_already_vax" ~ "Had COVID Vaccine",
-      explanatory_value %in% c("Yes", "No") & explanatory == "exp_flu_vax" ~ "Had flu Vaccine this year",
+      explanatory_value %in% c("Yes", "No") & explanatory == "exp_already_vax" ~ "Had COVID\nvaccine",
+      explanatory_value %in% c("Yes", "No") & explanatory == "exp_flu_vax" ~ "Had flu\n vaccine this\nyear",
       TRUE ~ NA_character_
     ),
-    grouping = factor(grouping, levels = c("All", "Age", "Gender", "Race", "Ethnicity", "Profession", "Had COVID Vaccine", "Had flu Vaccine this year")),
+    grouping = factor(grouping, levels = c("All", "Age", "Gender", "Race", "Ethnicity", "Profession", "Had COVID\nvaccine", "Had flu\n vaccine this\nyear")),
     explanatory_value = factor(explanatory_value, levels = c("<20", "21-25", "26-30", ">30", "", "Female", "Male", "Non-binary/Third gender", "Prefer not to say", "American Indian /\nAlaskan Native", "Asian", "Black / African American", "Native Hawaiian / Other\nPacific Islander", "White", "Hispanic / Latino", "Non-Hispanic / Non-Latino", "Medical", "Nursing", "No", "Yes")),
   )
 
 ggplot(covid_survey_summary_stats, aes(x = mean, y = explanatory_value)) +
   geom_point(size = 0.6) +
-  geom_errorbarh(aes(xmin = low, xmax = high), height = 0.5, color = "black", size = 0.3) +
-  facet_grid(grouping ~ response, scales = "free_y", space = "free_y") +
+  geom_errorbarh(aes(xmin = low, xmax = high), height = 0.3, color = "black", size = 0.3) +
   scale_y_discrete(expand = expansion(mult = c(0.05, 0.05))) +
+  facet_grid(grouping ~ response, scales = "free_y", space = "free_y") +
   labs(
     title = "Mean Likert Scores by Group and Survey Question",
     x = "Mean Likert Score\nError bars range from 10th to 90th percentile",
     y = NULL
   ) +
-  theme_minimal(base_size = 14) +
+  theme_minimal(base_size = 11) +
   theme(
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
-    strip.background = element_rect(fill = "grey90", color = NA),
+    strip.background = element_rect(fill = "grey90", color = "black"),
     axis.text.y = element_text(size = 5),
-    strip.text.y.right = element_text(angle = pi / 6),
-    panel.spacing.y = unit(1, "lines")
+    strip.text.y.right = element_text(size = 4, angle = pi / 6, margin = margin(t = 80, r = 1, b = 80, l = 1)),
+    strip.text.x = element_text(margin = margin(t = 4, r = 0, b = 10, l = 0))
   )
 ```
 
