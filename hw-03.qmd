@@ -5,6 +5,10 @@ format:
   html:
     embed-resources: true
 toc: true
+execute:
+  warning: false
+  error: false
+  message: false
 ---
 ## 0 - Setup
 
@@ -41,7 +45,7 @@ knitr::opts_chunk$set(
 if (!require("pacman")) 
   install.packages("pacman")
 
-# use this line for installing/loading
+# for installing/loading
 pacman::p_load(tidyverse,
                glue,
                scales,
@@ -121,6 +125,8 @@ https://scales.r-lib.org/reference/percent_format.html
 Referenced for ifelse usage:
 https://stat.ethz.ch/R-manual/R-devel/library/base/html/ifelse.html
 
+To display the image I used:
+https://ggplot2.tidyverse.org/reference/annotation_raster.html
 
 ## 2 - COVID survey - interpret
 
@@ -555,4 +561,7 @@ https://colorbrewer2.org/#type=sequential&scheme=BuGn&n=3
 
 Referenced to stack bars on top of each other:
 https://ggplot2.tidyverse.org/reference/position_stack.html
+
+To adjust geom_bar I referenced used:
+https://ggplot2.tidyverse.org/reference/geom_bar.html
 
