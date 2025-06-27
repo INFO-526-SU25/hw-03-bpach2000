@@ -366,8 +366,17 @@ ggplot(covid_survey_summary_stats_25_75, aes(x = mean, y = explanatory_value)) +
     strip.text.x = element_text(margin = margin(t = 5, r = 0, b = 5, l = 0), size = 6)
   )
 
-
 ```
+
+The previous plot, which used the 10th to 90th percentiles, displayed the middle 80% of the data. This provided a view of most of the response distribution, observing a wide range of answers while excluding the most extreme values. In contrast, the 25th to 75th percentile range shows the middle 50% of the data. This range represents the most typical or frequently occurring values with less influence from outliers.
+
+As a result, the plots differ. The plot using the 25th to 75th percentile generally displays narrower confidence intervals, making the data more precise. This suggests that while there’s variability in responses, the central half of responses is more consistent than the wider middle 80% range.
+
+In both the 25th to 75th percentile plot and the 10th to 90th percentile plot, for the response "Getting the vaccine will make me feel safer at work," nurses had an average response close to 1, with a relatively narrow confidence interval. This indicates strong agreement among nurses and a precise estimate of their average response. The confidence interval becomes even narrower in the 25th to 75th percentile plot, reflecting reduced influence from outliers.
+
+Medical professionals, by comparison, had a mean response closer to 2. While their confidence interval also narrows in the 25th to 75th percentile plot, it remains wider than that of the nurses, indicating greater variability in their responses. This suggests that, although medical professionals tended to agree with the statement, they were on average slightly less certain than nurses.
+
+Overall, while the means remain similar across both plots, the 25th to 75th percentile plot offers tighter confidence intervals, highlighting the middle 50% of responses with less influence from outliers and thereby improving precision.
 
 
 ## 5 - COVID survey - another view
