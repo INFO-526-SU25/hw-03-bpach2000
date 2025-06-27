@@ -380,3 +380,154 @@ Overall, while the means remain similar across both plots, the 25th to 75th perc
 
 
 ## 5 - COVID survey - another view
+
+### (A)
+```{r (A)}
+# Pivot responses to long format
+likert_long <- relabeled_survey |>
+  pivot_longer(
+    cols = starts_with("resp_"),
+    names_to = "question",
+    values_to = "response_value"
+  ) |>
+  filter(!is.na(response_value)) |>
+  glimpse()
+
+# Calculate percentage of each response value for each question
+likert_summary <- likert_long |>
+  group_by(question, response_value) |>
+  summarise(n = n(), .groups = "drop") |>
+  group_by(question) |>
+  mutate(percentage = n / sum(n) * 100) |>
+  glimpse()
+
+# convert to signed percenatges
+likert_summary <- likert_summary |>
+  mutate(
+    perc_signed = case_when(
+      response_value %in% c("1", "2") ~ percentage,
+      response_value %in% c("3") ~ 0,
+      response_value %in% c("4", "5") ~ -percentage
+    )
+  )
+
+# response variable is numeric and will need to be a factor for scale_fill_manual in the plot
+likert_summary <- likert_summary |>
+  mutate(response_value = factor(response_value, levels = c("1", "2", "3", "4", "5")))
+
+
+# define labels for response variables
+response_labels <- c(
+  "resp_safety" = "Based on my understanding,\nI believe the vaccine is safe",
+  "resp_feel_safe_at_work" = "Getting the vaccine will\nmake me feel safer at work",
+  "resp_concern_safety" = "I am concerned about the safety\nand side effects of the vaccine",
+  "resp_confidence_science" = "I am confident in the scientific vetting\nprocess for the new COVID vaccines",
+  "resp_trust_info" = "I trust the information that I have\nreceived about the vaccines",
+  "resp_will_recommend" = "I will recommend the vaccine to family,\nfriends, and  community members"
+)
+
+ggplot(likert_summary, aes(x = perc_signed, y = question, fill = response_value)) + 
+  geom_col(position = position_stack(reverse = TRUE), width = 0.6) +
+  scale_fill_manual(
+    values = c( "1" = "#b2182b", "2" = "#ef8a62","3" = "#7aa381", "4" = "#67a9cf", "5" = "#2166ac"),
+    name = "Likert Response",
+    labels = c("1", "2", "3", "4", "5")
+  ) +
+  scale_y_discrete(labels = response_labels) +
+  scale_x_continuous(labels = abs) +  # Show positive labels on x-axis
+  labs(
+    title = "COVID Vaccine Survey Responses",
+    x = "Percentage",
+    y = NULL
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    panel.grid.major.y = element_blank(),
+    axis.text.y = element_text(size = 8),
+    legend.position = "bottom"
+  )
+
+
+```
+
+The diverging bar chart displays the percentage of responses for each COVID vaccine survey question. The y-axis lists the survey questions, while the x-axis represents the percentage of likert responses. For each question, agree responses (‘1’ and ‘2’) extend to the right, neutral responses (‘3’) are centered at zero, and disagree responses (‘4’ and ‘5’) extend to the left. The length of each bar reflects the percentage of selecting that option. From the chart, it is clear that a large majority of people tended to agree with most of the survey statements. However, there is an exception in the question regarding concern about the safety and side effects of the vaccine with a majority of responses not agreeing.
+
+
+### (B)
+```{r (B)}
+
+# Pivot responses to long format
+likert_long <- relabeled_survey |>
+  pivot_longer(
+    cols = starts_with("resp_"),
+    names_to = "question",
+    values_to = "response_value"
+  ) |>
+  filter(!is.na(response_value))
+
+# Calculate percentage of each response value for each question
+likert_summary <- likert_long |>
+  group_by(question, response_value) |>
+  summarise(n = n(), .groups = "drop") |>
+  group_by(question) |>
+  mutate(percentage = n / sum(n) * 100)
+
+likert_summary <- likert_summary |>
+  mutate(
+    question = factor(question, levels = c(
+      "resp_safety", "resp_feel_safe_at_work", "resp_concern_safety",
+      "resp_confidence_science", "resp_trust_info", "resp_will_recommend"
+    )),
+    response_value = factor(response_value, levels = c("1", "2", "3", "4", "5"))
+  )
+
+# define labels for response variables
+response_labels <- c(
+  "resp_safety" = "Based on my understanding,\nI believe the vaccine is safe",
+  "resp_feel_safe_at_work" = "Getting the vaccine will\nmake me feel safer at work",
+  "resp_concern_safety" = "I am concerned about the safety\nand side effects of the vaccine",
+  "resp_confidence_science" = "I am confident in the scientific vetting\nprocess for the new COVID vaccines",
+  "resp_trust_info" = "I trust the information that I have\nreceived about the vaccines",
+  "resp_will_recommend" = "I will recommend the vaccine to family,\nfriends, and  community members"
+)
+
+# Plot diverging bar chart
+ggplot(likert_summary, aes(x = percentage, y = question, fill = response_value)) + 
+  geom_col(position = position_stack(reverse = TRUE), width = 0.6) +
+  scale_fill_manual(
+    values = c( "1" = "#b2182b", "2" = "#ef8a62","3" = "#7aa381", "4" = "#67a9cf", "5" = "#2166ac"),
+    name = "Likert Response",
+    labels = c("1", "2", "3", "4", "5")
+  ) +
+  scale_y_discrete(labels = response_labels) + 
+  labs(
+    title = "COVID Vaccine Survey Responses",
+    x = "Percentage",
+    y = NULL
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    panel.grid.major.y = element_blank(),
+    axis.text.y = element_text(size = 8),
+    legend.position = "bottom"
+  )
+
+```
+
+The 100% bar chart shows the percentage distribution of responses to COVID vaccine survey questions. The colored segments indicate response values from 1 (strongly agree) to 5 (strongly disagree). The chart reveals varying levels of agreement across questions, with generally higher agreement recommending the vaccine to others and lower agreement on vaccine safety concerns.
+
+To compare the bars, it was visually easier to interpret the diverging bar chart. It clearly showed that the majority of people agreed with the survey questions. While the 100% stacked bar chart also indicated that most respondents agreed, it was much more difficult to compare the distribution of individual likert responses, especially those with smaller percentages. The diverging bar chart made it easier to visually assess both the overall trends and the relative size of less popular response categories.
+
+### Sources
+Summarise each group into single row, directly used:
+https://dplyr.tidyverse.org/reference/summarise.html
+
+To get info on the group reference:
+https://dplyr.tidyverse.org/reference/context.html
+
+To select colors used:
+https://colorbrewer2.org/#type=sequential&scheme=BuGn&n=3
+
+Referenced to stack bars on top of each other:
+https://ggplot2.tidyverse.org/reference/position_stack.html
+
