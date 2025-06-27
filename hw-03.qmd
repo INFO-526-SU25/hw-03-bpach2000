@@ -20,6 +20,8 @@ library(openintro)
 library(ggrepel)
 library(patchwork)
 library(ggh4x)
+library(jpeg)
+library(ggpubr)
 
 # set theme for ggplot2
 ggplot2::theme_set(ggplot2::theme_minimal(base_size = 11))
@@ -58,6 +60,9 @@ devtools::install_github("tidyverse/dsbox")
 # Read in data from income file
 income <- read_csv(here("data" ,"income.csv"))
 
+# Load the image 
+paper <- readJPEG(here("images" ,"paper.jpg"))
+
 income <- income |>
   pivot_longer(
     cols = c(Rent, Food, Clothes, Tax, Other),
@@ -67,20 +72,35 @@ income <- income |>
   mutate(
     Type = factor(Type, levels = c("Other", "Tax", "Clothes", "Food", "Rent")),
     Class = factor(Class, levels = c("$1000 AND OVER", "$750-1000", "$500-750", "$400-500", "$300-400", "$200-300", "$100-200")),
-    Percent = round((Total_Amount / Average_Income) * 100)
   ) |>
-  glimpse()
+  group_by(Class) |>
+  mutate(
+    Class_Total = sum(Total_Amount),
+    Percent_of_Class = Total_Amount / Class_Total
+  ) |>
+  ungroup()
 
 # Create the histogram plot
 ggplot(income, aes(x = Total_Amount, y = Class, fill = Type)) +
+  annotation_raster(paper, xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf) +
   geom_col(position = "stack") +
   scale_fill_manual(
     values = c("Rent" = "#000000", "Food" = "#C3B1E1", "Clothes" = "#F89880", "Tax" = "#B7C9E2", "Other" = "#E6ECF5")) +
   geom_text(
-    aes(label = percent(Percent)),
+    aes(
+      label = ifelse(Percent_of_Class == 0, NA, percent(Percent_of_Class, accuracy = 1)),
+      color = Type
+    ),
     position = position_stack(vjust = 0.5),
-    color = "black",
-    size = 3
+    size = 3,
+    show.legend = FALSE
+  ) +
+  scale_color_manual(
+  values = c("Rent" = "white",
+             "Food" = "black",
+             "Clothes" = "black",
+             "Tax" = "black",
+             "Other" = "black")
   ) +
   labs(
     title = "Du Bois Plot Recreation",
@@ -90,9 +110,17 @@ ggplot(income, aes(x = Total_Amount, y = Class, fill = Type)) +
   theme_minimal(base_size = 11)
 
 ```
+
 ### Sources
-hex color values:
+Hex color values:
 https://htmlcolorcodes.com/colors/
+
+Referenced for percent function parameters:
+https://scales.r-lib.org/reference/percent_format.html
+
+Referenced for ifelse usage:
+https://stat.ethz.ch/R-manual/R-devel/library/base/html/ifelse.html
+
 
 ## 2 - COVID survey - interpret
 
@@ -287,7 +315,6 @@ https://ggplot2.tidyverse.org/reference/scale_discrete.html
 
 ## 4 - COVID survey - re-reconstruct
 ```{r Recreate COVID plot with error bars range from 25th to 75th percentile}
-
 # Group data in covid_survey_longer
 covid_survey_summary_stats_by_group_25_75 <- covid_survey_longer |>
   group_by(explanatory, explanatory_value, response) |>
@@ -383,23 +410,21 @@ Overall, while the means remain similar across both plots, the 25th to 75th perc
 
 ### (A)
 ```{r (A)}
-# Pivot responses to long format
+# pivot responses to long format
 likert_long <- relabeled_survey |>
   pivot_longer(
     cols = starts_with("resp_"),
     names_to = "question",
     values_to = "response_value"
   ) |>
-  filter(!is.na(response_value)) |>
-  glimpse()
+  filter(!is.na(response_value))
 
-# Calculate percentage of each response value for each question
+# calculate percentage of each response value for each question
 likert_summary <- likert_long |>
   group_by(question, response_value) |>
   summarise(n = n(), .groups = "drop") |>
   group_by(question) |>
-  mutate(percentage = n / sum(n) * 100) |>
-  glimpse()
+  mutate(percentage = n / sum(n) * 100)
 
 # convert to signed percenatges
 likert_summary <- likert_summary |>
